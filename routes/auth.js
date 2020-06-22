@@ -1,3 +1,9 @@
+const express = require("express");
+
+const Message = require("../models/message");
+
+const router = new express.Router();
+
 /** POST /login - login: {username, password} => {token}
  *
  * Make sure to update their last-login!
@@ -11,3 +17,5 @@
  *
  *  Make sure to update their last-login!
  */
+
+module.exports = router;
