@@ -40,7 +40,15 @@ class User {
    * [{username, first_name, last_name, phone}, ...] */
 
   static async all() {
-
+    const results = await db.query(
+      `SELECT username, 
+      first_name,  
+      last_name, 
+      phone, 
+      FROM users
+      ORDER BY username`
+    );
+    return results.rows;
   }
 
   /** Get: get user by username
@@ -64,9 +72,7 @@ class User {
       [username]
       );
       
-      const customer = results.rows[0];
-      
-      if (customer === undefined) {
+      if (!results.rows[0]) {
         throw new ExpressError(`No such customer: ${id}`, 404);
       }
       
