@@ -18,13 +18,13 @@ const router = new express.Router();
  **/
 router.get("/id", ensureLoggedIn, async function(req, res, next) {
     try {
-      const message = await Message.get(req.params.id);
+        const message = await Message.get(req.params.id);
 
-    if(message.from_user.username !== req.user.username && message.to_user.username !== req.user.username){
-        throw new ExpressError("Unauthorized to read message", 401);
-    }
-  
-    return res.json({ message });
+        if(message.from_user.username !== req.user.username && message.to_user.username !== req.user.username){
+            throw new ExpressError("Unauthorized to read message", 401);
+        }
+    
+        return res.json({ message });
     } catch (err) {
         return next(err);
     }
@@ -37,6 +37,15 @@ router.get("/id", ensureLoggedIn, async function(req, res, next) {
  *   {message: {id, from_username, to_username, body, sent_at}}
  *
  **/
+router.post("/", ensureLoggedIn, async function(req, res, next) {
+    try {
+        const message = await Message.create({from_username: req.user.username, to_username: req.body.to_user, body: req.body.body});
+
+        return res.json({ message });
+    } catch (err) {
+        return next(err);
+    }
+});
 
 
 /** POST/:id/read - mark message as read:
