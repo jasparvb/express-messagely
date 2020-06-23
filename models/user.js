@@ -17,9 +17,15 @@ class User {
     const hashedPassword = await bcrypt.hash(
       password, BCRYPT_WORK_FACTOR);
     const result = await db.query(
-      `INSERT INTO users (username, password, first_name, last_name, phone, join_at, last_login_at)
-            VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
-            RETURNING username, password, first_name, last_name, phone`,
+      `INSERT INTO users (username, 
+        password, 
+        first_name, 
+        last_name, 
+        phone, 
+        join_at, 
+        last_login_at)
+      VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
+      RETURNING username, password, first_name, last_name, phone`,
       [username, hashedPassword, first_name, last_name, phone]
     );
     return result.rows[0];
@@ -48,7 +54,7 @@ class User {
       [username]
     );
     if (!result.rows[0]) {
-      throw new ExpressError(`No such customer: ${id}`, 404);
+      throw new ExpressError(`No such username: ${username}`, 404);
     }
   }
 
@@ -89,7 +95,7 @@ class User {
       );
       
       if (!result.rows[0]) {
-        throw new ExpressError(`No such customer: ${id}`, 404);
+        throw new ExpressError(`No such username: ${username}`, 404);
       }
       
       return result.rows[0];
@@ -103,7 +109,36 @@ class User {
    *   {username, first_name, last_name, phone}
    */
     static async messagesFrom(username) {
+      const result = await db.query(
+        `SELECT u.username,
+                u.first_name,
+                u.last_name,
+                u.phone,
+                m.id,
+                m.body,
+                m.to_username,
+                m.sent_at,
+                m.read_at
+          FROM messages AS m
+            JOIN users AS u ON m.to_username = u.username
+          WHERE m.from_username = $1`,
+        [username]);
 
+      if (!result.rows[0]) {
+        throw new ExpressError(`No such username: ${username}`, 404);
+      }
+      return {
+        id: m.id,
+        to_user: {
+          username: m.to_username,
+          first_name: u.first_name,
+          last_name: u.last_name,
+          phone: u.phone,
+        },
+        body: m.body,
+        sent_at: m.sent_at,
+        read_at: m.read_at,
+      };
     }
 
   /** Return messages to this user.
