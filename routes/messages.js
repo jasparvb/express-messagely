@@ -16,6 +16,19 @@ const router = new express.Router();
  * Make sure that the currently-logged-in users is either the to or from user.
  *
  **/
+router.get("/id", ensureLoggedIn, async function(req, res, next) {
+    try {
+      const message = await Message.get(req.params.id);
+
+    if(message.from_user.username !== req.user.username && message.to_user.username !== req.user.username){
+        throw new ExpressError("Unauthorized to read message", 401);
+    }
+  
+    return res.json({ message });
+    } catch (err) {
+        return next(err);
+    }
+});
 
 
 /** POST / - post message.
