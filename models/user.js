@@ -1,27 +1,28 @@
 /** User class for message.ly */
 const db = require("../db");
-const Message = require("./message");
 const ExpressError = require("../expressError");
+const bcrypt = require("bcrypt");
+const { BCRYPT_WORK_FACTOR } = require("../config");
 
 
 /** User of the site. */
 
 class User {
-  constructor({ id, username, password, first_name, last_name, phone }) {
-    this.id = id;
-    this.username = username;
-    this.password = password;
-    this.first_name = first_name;
-    this.last_name = last_name;
-    this.phone = phone;
-  }
 
   /** register new user -- returns
    *    {username, password, first_name, last_name, phone}
    */
 
   static async register({username, password, first_name, last_name, phone}) {
-
+    const hashedPassword = await bcrypt.hash(
+      password, BCRYPT_WORK_FACTOR);
+    const result = await db.query(
+      `INSERT INTO users (username, password, first_name, last_name, phone, join_at, last_login_at)
+            VALUES ($1, $2, $3, $4, $5, current_timestamp, current_timestamp)
+            RETURNING username, password, first_name, last_name, phone`,
+      [username, hashedPassword, first_name, last_name, phone]
+    );
+    return result.rows[0];
   }
 
   /** Authenticate: is this username/password valid? Returns boolean. */
@@ -40,7 +41,7 @@ class User {
    * [{username, first_name, last_name, phone}, ...] */
 
   static async all() {
-    const results = await db.query(
+    const result = await db.query(
       `SELECT username, 
       first_name,  
       last_name, 
@@ -48,7 +49,7 @@ class User {
       FROM users
       ORDER BY username`
     );
-    return results.rows;
+    return result.rows;
   }
 
   /** Get: get user by username
@@ -61,7 +62,7 @@ class User {
    *          last_login_at } */
 
   static async get(username) {
-    const results = await db.query(
+    const result = await db.query(
       `SELECT username, 
       first_name,  
       last_name, 
@@ -72,7 +73,7 @@ class User {
       [username]
       );
       
-      if (!results.rows[0]) {
+      if (!result.rows[0]) {
         throw new ExpressError(`No such customer: ${id}`, 404);
       }
       
