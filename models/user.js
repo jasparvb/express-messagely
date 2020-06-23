@@ -66,7 +66,7 @@ class User {
       `SELECT username, 
       first_name,  
       last_name, 
-      phone, 
+      phone 
       FROM users
       ORDER BY username`
     );
@@ -123,22 +123,22 @@ class User {
             JOIN users AS u ON m.to_username = u.username
           WHERE m.from_username = $1`,
         [username]);
-
+      
       if (!result.rows[0]) {
         throw new ExpressError(`No such username: ${username}`, 404);
       }
-      return {
+      return result.rows.map(m => ({
         id: m.id,
         to_user: {
           username: m.to_username,
-          first_name: u.first_name,
-          last_name: u.last_name,
-          phone: u.phone,
+          first_name: m.first_name,
+          last_name: m.last_name,
+          phone: m.phone,
         },
         body: m.body,
         sent_at: m.sent_at,
         read_at: m.read_at,
-      };
+      }));
     }
     
     /** Return messages to this user.
@@ -164,22 +164,22 @@ class User {
           JOIN users AS u ON m.from_username = u.username
         WHERE m.to_username = $1`,
       [username]);
-  
+
     if (!result.rows[0]) {
       throw new ExpressError(`No such username: ${username}`, 404);
     }
-    return {
+    return result.rows.map(m => ({
       id: m.id,
-      to_user: {
+      from_user: {
         username: m.from_username,
-        first_name: u.first_name,
-        last_name: u.last_name,
-        phone: u.phone,
+        first_name: m.first_name,
+        last_name: m.last_name,
+        phone: m.phone,
       },
       body: m.body,
       sent_at: m.sent_at,
       read_at: m.read_at,
-    };    
+    }));    
   }
 }
 

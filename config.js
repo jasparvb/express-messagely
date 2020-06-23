@@ -4,7 +4,7 @@
 
 require("dotenv").config();
 
-const DB_URI = (process.env.NODE_ENV !== "production")
+const DB_URI = (process.env.NODE_ENV === "test")
   ? "postgresql://postgres:41361@localhost/messagely_test"
   : "postgresql://postgres:41361@localhost/messagely";
 
