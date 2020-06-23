@@ -140,17 +140,46 @@ class User {
         read_at: m.read_at,
       };
     }
-
-  /** Return messages to this user.
+    
+    /** Return messages to this user.
    *
    * [{id, from_user, body, sent_at, read_at}]
    *
    * where from_user is
    *   {id, first_name, last_name, phone}
    */
-
+  
   static async messagesTo(username) {
-
+    const result = await db.query(
+      `SELECT u.username,
+              u.first_name,
+              u.last_name,
+              u.phone,
+              m.id,
+              m.body,
+              m.from_username,
+              m.sent_at,
+              m.read_at
+        FROM messages AS m
+          JOIN users AS u ON m.from_username = u.username
+        WHERE m.to_username = $1`,
+      [username]);
+  
+    if (!result.rows[0]) {
+      throw new ExpressError(`No such username: ${username}`, 404);
+    }
+    return {
+      id: m.id,
+      to_user: {
+        username: m.from_username,
+        first_name: u.first_name,
+        last_name: u.last_name,
+        phone: u.phone,
+      },
+      body: m.body,
+      sent_at: m.sent_at,
+      read_at: m.read_at,
+    };    
   }
 }
 
