@@ -39,7 +39,11 @@ router.get("/id", ensureLoggedIn, async function(req, res, next) {
  **/
 router.post("/", ensureLoggedIn, async function(req, res, next) {
     try {
-        const message = await Message.create({from_username: req.user.username, to_username: req.body.to_user, body: req.body.body});
+        const message = await Message.create({
+            from_username: req.user.username, 
+            to_username: req.body.to_user, 
+            body: req.body.body
+        });
 
         return res.json({ message });
     } catch (err) {
